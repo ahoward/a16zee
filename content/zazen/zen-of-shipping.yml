@@ -1,0 +1,11 @@
+slug: zen-of-shipping
+title: "Zen of Shipping"
+author: "Jorge Heatherington"
+author_real: "george hotz (composite)"
+body: |
+  do not "find" your truth
+  truth is `git push origin`
+  truth is the green ci
+motif: "git-graph"
+caption: "EXHIBIT XII · COMMIT EARLY, COMMIT OFTEN"
+created: "2026-05-08"

@@ -1,0 +1,16 @@
+{
+  "name": "a16zee",
+  "version": "0.1.0",
+  "private": true,
+  "description": "a16zee — the cocaine run #vcevil",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "deploy": "npm run build && wrangler pages deploy public --project-name=a16zee --branch=main --commit-dirty=true"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "sharp": "^0.34.0"
+  }
+}

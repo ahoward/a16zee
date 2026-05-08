@@ -121,12 +121,47 @@
   .receipt .row{display:flex;justify-content:space-between;border-bottom:1px dotted #000;padding:2px 0}
   .receipt .row:last-of-type{border-bottom:0}
   .receipt .total{font-weight:700;border-top:2px solid #000;margin-top:6px;padding-top:6px}
+
+  /* nav */
+  .nav{font-size:12px;text-transform:uppercase;letter-spacing:1px}
+  .nav a{color:#000;margin-right:12px}
+  .nav a:hover{text-decoration:none;background:#000;color:#fff}
+
+  /* zazen modal */
+  .modal{position:fixed;inset:0;background:#fff;display:none;z-index:9999;
+    padding:32px 24px;overflow-y:auto;
+    animation:fadeIn .35s ease-out}
+  .modal.on{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal .frame{max-width:680px;width:100%;border:2px solid #000;padding:32px}
+  .modal .meta{font-size:11px;text-transform:uppercase;letter-spacing:2px;
+    display:flex;justify-content:space-between;margin-bottom:24px;
+    border-bottom:1px solid #000;padding-bottom:8px}
+  .modal .ttl{font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:4px}
+  .modal .auth{font-size:14px;margin-bottom:28px}
+  .modal .auth em{font-style:normal;text-decoration:underline}
+  .modal .haiku{font-size:24px;line-height:1.7;font-weight:700;
+    white-space:pre-wrap;border-left:4px solid #000;padding:12px 0 12px 20px;
+    margin-bottom:32px}
+  .modal .quiet{font-size:11px;color:#000;opacity:.6;margin-bottom:28px;
+    border-top:1px dashed #000;padding-top:14px;line-height:1.7}
+  .modal .actions{display:flex;flex-direction:column;gap:8px}
+  .modal button.continue{padding:14px;background:#000;color:#fff;border:0;
+    font-family:inherit;font-size:14px;font-weight:700;text-transform:uppercase;
+    letter-spacing:2px;cursor:pointer;width:100%}
+  .modal button.continue:hover{background:#fff;color:#000;outline:2px solid #000}
+  .modal a.permalink{font-size:11px;text-align:center;color:#000;text-decoration:underline;padding:8px}
+  .modal .pr{font-size:11px;text-align:center;margin-top:14px;border-top:1px dotted #000;padding-top:14px;line-height:1.7}
+  .modal .pr a{color:#000;font-weight:700}
 </style>
 </head>
 <body>
   <header>
     <h1>a16zee <span>// the cocaine run</span></h1>
-    <div class="tag">#vcevil</div>
+    <div>
+      <span class="nav"><a href="/zazen/">zazen ↗</a></span>
+      <span class="tag">#vcevil</span>
+    </div>
   </header>
 
   <p class="hook">a16z has a Speedrun. We have a Cocaine Run. If you aren't vibrating, you're moving too slow.</p>
@@ -248,19 +283,95 @@
     <span class="disclaimer" aria-label="Parody Disclaimer">This is a parody for people who actually build things. If you thought you were getting $1M for a deck, you're the problem. 🤡</span>
   </footer>
 
+  <!-- post-submit zazen modal — populated by JS -->
+  <div class="modal" id="zazen-modal" role="dialog" aria-modal="true" aria-labelledby="zazen-title" aria-hidden="true">
+    <div class="frame">
+      <div class="meta">
+        <span>a16zee · zazen</span>
+        <span id="zazen-stamp">received · 0.00s</span>
+      </div>
+      <div class="ttl" id="zazen-title">…</div>
+      <div class="auth">— Zazen by <em id="zazen-author">…</em></div>
+      <pre class="haiku" id="zazen-body">…</pre>
+      <div class="quiet">
+        Our "AI" agent has finished auditing your stack. The verdict, in seventeen
+        syllables. Sit with it.
+      </div>
+      <div class="actions">
+        <button class="continue" id="zazen-continue" type="button">Continue →</button>
+        <a class="permalink" id="zazen-permalink" href="/zazen/" target="_blank" rel="noopener">view permalink ↗</a>
+      </div>
+      <div class="pr">
+        have your own zazen?
+        <a href="https://github.com/ahoward/a16zee/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">open a pr</a> ·
+        <a href="https://github.com/ahoward/a16zee/issues/new?title=zazen:%20" target="_blank" rel="noopener">file an issue</a>
+      </div>
+    </div>
+  </div>
+
 <script>
 (function(){
-  var form=document.getElementById('app');
-  var btn=document.getElementById('submit');
-  var prog=document.getElementById('progress');
-  form.addEventListener('submit',function(e){
+  var form  = document.getElementById('app');
+  var btn   = document.getElementById('submit');
+  var prog  = document.getElementById('progress');
+  var modal = document.getElementById('zazen-modal');
+  var elTtl = document.getElementById('zazen-title');
+  var elAut = document.getElementById('zazen-author');
+  var elBod = document.getElementById('zazen-body');
+  var elPer = document.getElementById('zazen-permalink');
+  var elStmp= document.getElementById('zazen-stamp');
+  var elCont= document.getElementById('zazen-continue');
+
+  var RICKROLL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+
+  var manifestPromise = fetch('/zazen/manifest.json', { cache: 'no-cache' })
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .catch(function(){ return []; });
+
+  function pickHaiku(list){
+    if (!list || !list.length) return null;
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function showHaiku(h, elapsedMs){
+    elTtl.textContent = h.title;
+    elAut.textContent = h.author;
+    elBod.textContent = h.body;
+    elPer.href = '/zazen/' + h.slug + '/';
+    elStmp.textContent = 'received · ' + (elapsedMs/1000).toFixed(2) + 's';
+    modal.classList.add('on');
+    modal.setAttribute('aria-hidden','false');
+    // start a slow visual countdown of dwell time, just for vibe
+    var t0 = Date.now();
+    var dwell = setInterval(function(){
+      elStmp.textContent = 'dwelling · ' + ((Date.now()-t0)/1000).toFixed(0) + 's';
+    }, 1000);
+    elCont.addEventListener('click', function once(){
+      clearInterval(dwell);
+      window.location.href = RICKROLL;
+    }, { once: true });
+  }
+
+  form.addEventListener('submit', function(e){
     e.preventDefault();
-    btn.disabled=true;
-    btn.textContent='Analyzing…';
+    btn.disabled = true;
+    btn.textContent = 'Analyzing…';
     prog.classList.add('on');
-    setTimeout(function(){
-      window.location.href='https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-    },1500);
+    var t0 = Date.now();
+
+    Promise.all([
+      manifestPromise,
+      new Promise(function(res){ setTimeout(res, 1500); }) // fake AI reasoning
+    ]).then(function(arr){
+      var list = arr[0];
+      var h = pickHaiku(list);
+      if (!h) {
+        // fallback: no manifest — go straight to rickroll
+        window.location.href = RICKROLL;
+        return;
+      }
+      showHaiku(h, Date.now() - t0);
+    });
   });
 })();
 </script>
