@@ -1,0 +1,20 @@
+# every PR needs @ahoward review by default — but the *structural* paths below
+# are the ones that matter most. content/zazen/*.yml additions are easier to
+# eyeball; everything else is "this could change how the site behaves."
+
+* @ahoward
+
+# build pipeline + landing page templates — careful review
+/scripts/                @ahoward
+/templates/              @ahoward
+/public/index.html       @ahoward
+
+# CI itself — anyone editing the workflow can edit what CI checks for
+/.github/                @ahoward
+
+# deps
+/package.json            @ahoward
+/package-lock.json       @ahoward
+
+# the only path where a "drive-by add a haiku" PR is expected
+/content/zazen/          @ahoward

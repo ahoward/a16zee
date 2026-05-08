@@ -1,0 +1,51 @@
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: validate haikus + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: install
+        run: npm ci
+
+      - name: lint content
+        run: npm run lint
+
+      - name: build (proves the SVG → PNG pipeline still works)
+        run: node scripts/build.js
+
+      - name: warn if PR touches structural code
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          changed=$(git diff --name-only "$base" "$head")
+          echo "changed files:"
+          echo "$changed" | sed 's/^/  /'
+          # any path NOT under content/zazen/ is structural — flag loudly
+          structural=$(echo "$changed" | grep -vE '^content/zazen/[a-z0-9-]+\.yml$' || true)
+          if [ -n "$structural" ]; then
+            {
+              echo "## ⚠️ structural change detected"
+              echo
+              echo "this PR modifies files outside \`content/zazen/\`. review extra carefully — these are not just haiku additions:"
+              echo
+              echo '```'
+              echo "$structural"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

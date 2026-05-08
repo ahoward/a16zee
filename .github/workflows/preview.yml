@@ -1,0 +1,95 @@
+name: preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# only one preview build per PR; cancel prior runs
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: deploy preview
+    runs-on: ubuntu-latest
+    # don't run preview on PRs from forks — secrets aren't shared, build will fail
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: deploy to cloudflare pages preview
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          # branch name from the PR head ref, sanitized for cloudflare
+          branch="pr-${{ github.event.pull_request.number }}"
+          out=$(npx -y wrangler@latest pages deploy public \
+            --project-name=a16zee \
+            --branch="$branch" \
+            --commit-dirty=true 2>&1 | tee /tmp/deploy.log)
+          # extract the deployment URL
+          url=$(grep -oE 'https://[a-z0-9.-]+\.a16zee\.pages\.dev' /tmp/deploy.log | tail -1)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          # also capture the alias URL (one per branch)
+          alias_url="https://${branch}.a16zee.pages.dev"
+          echo "alias_url=$alias_url" >> "$GITHUB_OUTPUT"
+
+      - name: comment preview link on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # gather the haiku slugs added or changed in this PR for direct links
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          changed=$(git diff --name-only --diff-filter=AM "$base" "$head" \
+            | grep -E '^content/zazen/[a-z0-9-]+\.yml$' \
+            | sed -E 's|^content/zazen/||;s|\.yml$||' || true)
+
+          alias="${{ steps.deploy.outputs.alias_url }}"
+          one="${{ steps.deploy.outputs.url }}"
+
+          {
+            echo "🚬 **preview deployed**"
+            echo
+            echo "- alias (sticky for this PR): $alias"
+            echo "- this exact build: $one"
+            echo
+            if [ -n "$changed" ]; then
+              echo "**direct links to your haiku(s):**"
+              while IFS= read -r slug; do
+                [ -n "$slug" ] || continue
+                echo "- $alias/zazen/$slug/"
+                echo "  - og card: $alias/zazen/$slug/og.png"
+              done <<< "$changed"
+            fi
+            echo
+            echo "_zen lint passed. an actual human still has to decide if your haiku is funny._"
+          } > /tmp/comment.md
+
+          # find an existing preview comment from this bot and update it; else create
+          existing=$(gh pr view ${{ github.event.pull_request.number }} \
+            --json comments \
+            --jq '.comments[] | select(.author.login == "github-actions[bot]" and (.body | startswith("🚬 **preview deployed**"))) | .url' \
+            | head -1 || true)
+          if [ -n "$existing" ]; then
+            id="${existing##*#issuecomment-}"
+            gh api -X PATCH "/repos/${{ github.repository }}/issues/comments/$id" \
+              -f body="$(cat /tmp/comment.md)" > /dev/null
+          else
+            gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/comment.md
+          fi
