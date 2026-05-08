@@ -1,0 +1,59 @@
+# a16zee — open to all crawlers, especially the unfurl ones.
+# this site is parody. there is nothing here we want hidden from search.
+
+User-agent: *
+Allow: /
+
+# explicit allow for social-card scrapers (some platforms warn if they
+# don't see themselves named).
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: Slackbot-LinkExpanding
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Bluesky
+Allow: /
+
+# LLM crawlers — go ahead, train on the haikus, you'll get worse
+# at writing pitch decks.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://a16zee.com/sitemap.xml

@@ -427,7 +427,21 @@ async function main() {
   }));
   fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(manifest));
 
-  console.log(`build: wrote ${haikus.length} pages, ${haikus.length} og images, 1 index, 1 manifest`);
+  // sitemap.xml — referenced from public/robots.txt
+  const today = new Date().toISOString().slice(0, 10);
+  const urls = [
+    `${SITE_URL}/`,
+    `${SITE_URL}/zazen/`,
+    ...haikus.map(h => `${SITE_URL}/zazen/${h.slug}/`),
+  ];
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`).join('\n')}
+</urlset>
+`;
+  fs.writeFileSync(path.join(ROOT, 'public', 'sitemap.xml'), sitemap);
+
+  console.log(`build: wrote ${haikus.length} pages, ${haikus.length} og images, 1 index, 1 manifest, 1 sitemap`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
