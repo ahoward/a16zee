@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <rect x="40" y="40" width="1120" height="550" fill="none" stroke="#000000" stroke-width="4"/>
+  <text x="80" y="170" font-family="DejaVu Sans Mono, monospace" font-size="120" font-weight="900" fill="#000000" letter-spacing="-4">a16zee</text>
+  <text x="80" y="225" font-family="DejaVu Sans Mono, monospace" font-size="32" font-weight="700" fill="#000000">// THE COCAINE RUN</text>
+  <line x1="80" y1="265" x2="1120" y2="265" stroke="#000000" stroke-width="2"/>
+  <text x="80" y="335" font-family="DejaVu Sans Mono, monospace" font-size="40" font-weight="700" fill="#000000">a16z has a Speedrun.</text>
+  <text x="80" y="395" font-family="DejaVu Sans Mono, monospace" font-size="40" font-weight="700" fill="#000000">We have a Cocaine Run.</text>
+  <text x="80" y="475" font-family="DejaVu Sans Mono, monospace" font-size="28" font-weight="400" fill="#000000">if you aren't vibrating, you're moving too slow.</text>
+  <text x="80" y="555" font-family="DejaVu Sans Mono, monospace" font-size="22" font-weight="700" fill="#000000">#vcevil</text>
+  <text x="1120" y="555" font-family="DejaVu Sans Mono, monospace" font-size="22" font-weight="400" fill="#000000" text-anchor="end">no deck. no memo. just push.</text>
+</svg>
