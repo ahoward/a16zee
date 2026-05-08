@@ -80,6 +80,13 @@ You don't commit the generated files in `public/zazen/`. CI handles that on merg
 - Don't use the word "disrupt." We mean it.
 - Rhyming is allowed but suspicious.
 
+## Secrets / forking
+
+If you fork this repo and want CI to deploy your own preview, copy `.env.example`
+to `.env`, fill in the values, and run `gh lockbox dotenv push .env`. See
+`.env.example` for what each secret is for and how to provision it. `.env` is
+.gitignored — never commit it.
+
 ## Licensing
 
 By submitting, you agree your contribution is licensed under MIT (same as the
